@@ -1,0 +1,13 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prism-demo
+spec:
+  replicas: 2
+  template:
+    spec:
+      containers:
+        - name: app
+          image: ghcr.io/example/prism-demo:latest
+          ports:
+            - containerPort: 8080
