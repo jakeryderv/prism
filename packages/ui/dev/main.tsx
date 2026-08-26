@@ -1,8 +1,11 @@
 /**
- * Dev harness: mounts the workspace on a MemoryProvider with fixtures, a trivial text
- * renderer, and a deliberately broken markdown renderer so the fallback path is visible.
+ * Dev harness: mounts the workspace on a MemoryProvider with fixtures, the real code and
+ * image renderers, a trivial text renderer, and a deliberately broken markdown renderer so
+ * the fallback path is visible.
  */
 import { MemoryProvider, matchMime, matchMimePrefix, RendererRegistry } from '@prism/core'
+import { codeRenderer } from '@prism/renderer-code'
+import { imageRenderer } from '@prism/renderer-image'
 import { type Component, createResource, createSignal } from 'solid-js'
 import { render } from 'solid-js/web'
 import { PrismProvider, type RendererView, type SolidRenderer, Workspace } from '../src'
@@ -55,7 +58,11 @@ const broken: SolidRenderer = {
   },
 }
 
-const registry = new RendererRegistry<RendererView>().register(text).register(broken)
+const registry = new RendererRegistry<RendererView>()
+  .register(codeRenderer)
+  .register(imageRenderer)
+  .register(text)
+  .register(broken)
 
 const App: Component = () => {
   const [running, setRunning] = createSignal(false)
