@@ -1,0 +1,26 @@
+{
+  "name": "@prism/desktop",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "tauri": "tauri"
+  },
+  "dependencies": {
+    "@prism/core": "workspace:*",
+    "@prism/renderer-code": "workspace:*",
+    "@prism/renderer-image": "workspace:*",
+    "@prism/ui": "workspace:*",
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-dialog": "^2",
+    "@tauri-apps/plugin-opener": "^2",
+    "solid-js": "^1.9.0"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2",
+    "vite": "^7.0.0",
+    "vite-plugin-solid": "^2.11.0"
+  }
+}

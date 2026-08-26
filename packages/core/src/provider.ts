@@ -49,12 +49,23 @@ export interface WorkspaceProvider {
   openExternal(path: string): Promise<void>
 }
 
+export type ProviderErrorCode =
+  | 'not-found'
+  | 'is-directory'
+  | 'not-directory'
+  | 'unsupported'
+  /** The path resolves outside the workspace root or is otherwise off-limits. */
+  | 'forbidden'
+  /** Any other backend failure (permissions, disk errors); `message` carries detail. */
+  | 'io'
+
 export class ProviderError extends Error {
   constructor(
-    readonly code: 'not-found' | 'is-directory' | 'not-directory' | 'unsupported',
+    readonly code: ProviderErrorCode,
     readonly path: string,
+    message?: string,
   ) {
-    super(`${code}: ${path}`)
+    super(message ?? `${code}: ${path}`)
     this.name = 'ProviderError'
   }
 }
