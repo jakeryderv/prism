@@ -11,6 +11,7 @@ fn main() {
             "fs_read",
             "open_external",
             "log_line",
+            "debug_enabled",
         ]),
     ))
     .expect("failed to run tauri-build");

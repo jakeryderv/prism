@@ -130,15 +130,17 @@ Renderer errors are never swallowed below this level.
 
 `packages/ui/dev` (`bun run dev:ui`) mounts `Workspace` on a seeded `MemoryProvider` with a trivial text renderer and a deliberately throwing `text/markdown` renderer, plus a "simulate agent" button that writes, edits, and deletes files on an interval to exercise live update, activity, and follow.
 
-## File watching *(planned)*
+## File watching
 
-Rust side, `notify` + debouncer + `ignore` crate.
+Rust side (`packages/desktop/src-tauri/src/watcher.rs`): `notify` 8 + `notify-debouncer-full` 0.6 for coalescing, the `ignore` crate (ripgrep's) for `.gitignore` semantics, and an existence map for normalization. Decision record: ADR-0005.
 
-- Events are debounced and coalesced per path (agents and editors write in bursts).
-- Atomic saves (`write tmp; rename`) are normalized to `modified`, not `deleted`+`created`.
-- `.gitignore` and a built-in ignore list (`.git`, `node_modules`, `target`, …) are honored.
-- Renders wait for a short settle window so half-written files are not parsed.
-- Each event carries `size` and a content `hash` when cheap to compute. The MVP UI only uses `kind` and `path`; the extra fields are the hook for revision tracking later without changing the event shape.
+- Starts when `workspace_open` succeeds (the previous watcher is stopped first), recursive over the canonical root. A watcher failure fails the command; there is no silent fallback.
+- **Debounce:** 150 ms per path (the debouncer's window). Every debounced batch is normalized by one pure function, `normalize(batch, &mut known, root, rules, settle)`, on a dedicated std thread — nothing runs on the async runtime.
+- **Normalization:** kind is decided by existence on disk versus `known: HashMap<rel_path, bool>` (seeded by a walk at start, honoring the ignore rules). Exists and unknown → `created`; exists and known → `modified`; gone and known → `deleted`; gone and unknown → dropped (a tmp file that came and went). So a create+modify burst is one `created`, an atomic save (`write x.tmp; rename x.tmp x`) is exactly one `modified` on `x`, and `mv a b` is `deleted a` + `created b`. Access events (reads) are dropped — the UI re-reads on `modified`, which would otherwise loop. Directories emit too (the tree needs them) but never carry `size`/`hash`.
+- **Settle:** if a file's mtime is within the last 50 ms it is re-stat'ed once after 50 ms before emitting, a cheap guard against half-written files.
+- **Ignore rules:** built-ins `.git`, `node_modules`, `target`, `dist`, `.cache`, `__pycache__`, `.venv`, `.DS_Store`, `*.swp`, `*~`, `.#*`, `4913`, then the root `.gitignore` (so `!pattern` there can override a built-in). Nested `.gitignore` files are not read yet. Paths under an ignored directory never emit. `IgnoreRules::is_ignored(rel, is_dir)` is pure and unit-tested.
+- **Payload** is core's `FileEvent` exactly: `{ kind, path, timestamp, size?, hash? }` with `path` workspace-relative POSIX and `timestamp` ms since epoch. `size` for every file; `hash` (FNV-1a 64, 16 lowercase hex, identical to core's `fnv1a64` — vector-tested) only for files ≤ 1 MiB. Emitted as the Tauri event `fs:event`; `TauriProvider.watch` listens for it.
+- `PRISM_DEBUG=1` logs each emitted event to stderr (`[watcher] kind path size hash`), and `App.tsx` mirrors what the UI receives through `log_line`, so the two streams can be compared in one terminal.
 
 ## Large files
 
@@ -152,7 +154,7 @@ In desktop mode that URL is a custom `prism://localhost/<absolute path>` scheme 
 
 ## Desktop shell
 
-Tauri 2, `packages/desktop`. `src-tauri` (crate `prism`) owns workspace state, fs reads, the `prism://` scheme, and native "open"; the watcher is still planned (see above). `src/` is the Solid entry: `App.tsx` opens the workspace given on the command line (`prism <dir>`, or `PRISM_WORKSPACE=<dir>`; the argument wins) or shows an **Open folder…** button (`@tauri-apps/plugin-dialog`), then mounts `<PrismProvider provider registry><Workspace/></PrismProvider>` from `@prism/ui` with the code and image renderers. `bun run dev:desktop -- -- <dir>` starts it in dev.
+Tauri 2, `packages/desktop`. `src-tauri` (crate `prism`) owns workspace state, fs reads, the `prism://` scheme, the file watcher, and native "open". `src/` is the Solid entry: `App.tsx` opens the workspace given on the command line (`prism <dir>`, or `PRISM_WORKSPACE=<dir>`; the argument wins) or shows an **Open folder…** button (`@tauri-apps/plugin-dialog`), then mounts `<PrismProvider provider registry><Workspace/></PrismProvider>` from `@prism/ui` with the code and image renderers. `bun run dev:desktop -- -- <dir>` starts it in dev.
 
 ### Commands
 
@@ -168,6 +170,7 @@ All paths crossing IPC are workspace-relative POSIX (`''` = root), the same form
 | `fs_read(path)` | raw bytes as `tauri::ipc::Response` (ArrayBuffer on the JS side, no base64); directories → `is-directory` |
 | `open_external(path)` | `tauri-plugin-opener` `open_path` on the absolute path |
 | `log_line(line)` | `eprintln!` from the UI — dev aid, kept because screenshots are unavailable under Wayland |
+| `debug_enabled` | whether `PRISM_DEBUG=1` is set; the UI mirrors received `fs:event`s via `log_line` when it is |
 
 The window CSP is `null` for now (TODO in `lib.rs`); it will be tightened once the renderer set is settled. Command permissions are generated by `build.rs` (`AppManifest::commands`) and granted in `capabilities/default.json` alongside `core:default`, `dialog:allow-open`, and `opener:default`.
 

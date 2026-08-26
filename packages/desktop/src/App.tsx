@@ -4,7 +4,7 @@ import { imageRenderer } from '@prism/renderer-image'
 import { PrismProvider, type RendererView, Workspace } from '@prism/ui'
 import { open as openDialog } from '@tauri-apps/plugin-dialog'
 import { type Component, createSignal, Match, onMount, Show, Switch } from 'solid-js'
-import { logLine, TauriProvider } from './tauri-provider'
+import { debugEnabled, logLine, TauriProvider } from './tauri-provider'
 
 const registry = new RendererRegistry<RendererView>().register(codeRenderer).register(imageRenderer)
 
@@ -19,6 +19,9 @@ export const App: Component = () => {
     try {
       const p = await TauriProvider.open(path)
       await logLine(`workspace opened: ${p.root}`)
+      // Dev aid: with PRISM_DEBUG=1 the Rust watcher logs what it emits; echo what the UI
+      // actually received next to it so the two can be compared in one stderr stream.
+      if (await debugEnabled()) p.watch((ev) => void logLine(`fs:event ${ev.kind} ${ev.path}`))
       setProvider(p)
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))

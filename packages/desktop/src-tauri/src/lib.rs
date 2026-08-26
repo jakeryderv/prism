@@ -7,13 +7,15 @@
 mod error;
 mod fs;
 mod scheme;
+mod watcher;
 mod workspace;
 
 use tauri::ipc::Response;
-use tauri::State;
+use tauri::{AppHandle, Emitter, Manager, RunEvent, State};
 
 use error::AppError;
 use fs::Entry;
+use watcher::WatcherState;
 use workspace::{WorkspaceInfo, WorkspaceState};
 
 #[tauri::command]
@@ -23,11 +25,24 @@ fn workspace_initial(state: State<'_, WorkspaceState>) -> Option<String> {
 
 #[tauri::command]
 fn workspace_open(
+    app: AppHandle,
     state: State<'_, WorkspaceState>,
+    watchers: State<'_, WatcherState>,
     path: String,
 ) -> Result<WorkspaceInfo, AppError> {
     let info = state.open(&path)?;
     eprintln!("[prism] workspace: {}", info.root);
+    // Stop the previous watcher before starting the new one; a watcher failure is an error
+    // for the caller, not a silent degradation.
+    watchers.stop();
+    let root = state.root()?;
+    let emitter = app.clone();
+    let handle = watcher::start(root, move |ev| {
+        if let Err(e) = emitter.emit("fs:event", &ev) {
+            eprintln!("[watcher] emit failed: {e}");
+        }
+    })?;
+    watchers.replace(Some(handle));
     Ok(info)
 }
 
@@ -70,6 +85,12 @@ fn log_line(line: String) {
     eprintln!("[ui] {line}");
 }
 
+/// Whether `PRISM_DEBUG=1` is set, so the UI can mirror the watcher's stderr logging.
+#[tauri::command]
+fn debug_enabled() -> bool {
+    watcher::debug_enabled()
+}
+
 /// `prism <dir>` or `PRISM_WORKSPACE=<dir>`; the CLI argument wins.
 fn initial_workspace() -> Option<String> {
     std::env::args()
@@ -88,6 +109,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .manage(state)
+        .manage(WatcherState::default())
         .register_uri_scheme_protocol(scheme::SCHEME, scheme::handle)
         .invoke_handler(tauri::generate_handler![
             workspace_initial,
@@ -98,7 +120,14 @@ pub fn run() {
             fs_read,
             open_external,
             log_line,
+            debug_enabled,
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running Prism");
+        .build(tauri::generate_context!())
+        .expect("error while building Prism")
+        .run(|app, event| {
+            // Stop the watcher threads deliberately before the process tears down.
+            if let RunEvent::Exit = event {
+                app.state::<WatcherState>().stop();
+            }
+        });
 }

@@ -135,3 +135,8 @@ export class TauriProvider implements WorkspaceProvider {
 export function logLine(line: string): Promise<void> {
   return invoke('log_line', { line })
 }
+
+/** Whether the app was started with `PRISM_DEBUG=1` (mirrors the Rust side's watcher logging). */
+export function debugEnabled(): Promise<boolean> {
+  return invoke<boolean>('debug_enabled')
+}
