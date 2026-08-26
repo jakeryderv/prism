@@ -3,7 +3,7 @@
 One sample file per supported renderer, so the app can be exercised on this repo itself:
 
 ```sh
-bun run dev:desktop -- -- .
+bun run dev:desktop .
 ```
 
 then open `demo/` in the file tree. Edit or regenerate any file here while the app is running to see live updates.

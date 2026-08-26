@@ -11,7 +11,7 @@ On Debian/Ubuntu the Tauri 2 deps are:
 bun install
 bun run check      # Biome + typecheck + package boundaries
 bun run test
-bun run dev:desktop -- -- /path/to/dir   # run the desktop app against a folder
+bun run dev:desktop /path/to/dir   # run the desktop app against a folder
 
 cd packages/desktop/src-tauri            # Rust side; CI runs exactly these
 cargo fmt --check
