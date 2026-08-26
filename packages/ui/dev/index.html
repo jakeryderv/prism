@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>@prism/ui harness</title>
+    <style>
+      html, body, #root { height: 100%; margin: 0; }
+      body { background: #1e1f24; color: #d7dae0; font: 13px system-ui, sans-serif; }
+      #root { display: flex; flex-direction: column; }
+      .harness-bar { display: flex; gap: 12px; align-items: center; padding: 6px 10px; border-bottom: 1px solid #33363e; }
+      .harness-bar button { font: inherit; padding: 3px 10px; background: #353945; color: inherit; border: 1px solid #33363e; border-radius: 4px; cursor: pointer; }
+      .harness-fill { flex: 1; min-height: 0; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="./main.tsx"></script>
+  </body>
+</html>

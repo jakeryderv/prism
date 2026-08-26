@@ -22,3 +22,4 @@ Monorepo with several TypeScript packages, a Tauri app, and a future server. Wan
 
 - Contributors need Bun installed; documented in CONTRIBUTING.
 - Vite is still used for the Solid/Tauri front-end build; Bun is not a bundler replacement here.
+- `bun test` cannot compile Solid JSX, so UI logic lives in plain `.ts` modules (`packages/ui/src/store`) tested with `bun:test`; components stay thin and are checked visually via the Vite dev harness.
