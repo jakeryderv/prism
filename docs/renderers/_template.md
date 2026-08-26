@@ -3,6 +3,7 @@
 - **Package:** `@prism/renderer-<name>`
 - **Matches:** extensions / MIME types, and the `match` score rationale
 - **Max size:** N MB (why)
+- **Demo files:** `demo/<...>`
 
 ## What it shows
 

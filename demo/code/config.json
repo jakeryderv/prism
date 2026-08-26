@@ -1,0 +1,6 @@
+{
+  "name": "prism-demo",
+  "watch": { "debounceMs": 150, "ignore": [".git", "node_modules", "target"] },
+  "renderers": ["code", "image"],
+  "limits": { "codeMaxBytes": 20971520, "imageMaxBytes": 52428800 }
+}

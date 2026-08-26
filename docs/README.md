@@ -10,6 +10,10 @@ How documentation is organized and when to touch what.
 | `decisions/` | Architecture Decision Records — *why* something was chosen | a non-obvious technical choice is made or reversed |
 | `renderers/` | One page per renderer: scope, deps, limits, known issues | a renderer is added or materially changed |
 
+## Top-level `demo/`
+
+`demo/` (repo root, not under `docs/`) holds one sample file per supported renderer so the app can be run against this repository itself (`bun run dev:desktop -- -- .`). It exists so renderer work is testable without hunting for fixtures; see `demo/README.md` for the convention.
+
 ## Principles
 
 - **Docs describe what is, not what we hope.** Aspirational content goes in `roadmap.md` or an ADR's "consequences" section, not in `architecture.md`.

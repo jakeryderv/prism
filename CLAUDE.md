@@ -24,6 +24,7 @@ When a task touches any of the following, update the doc in the same PR:
 | package boundaries, provider interface, renderer contract | `docs/architecture.md` |
 | a non-obvious technical choice | new ADR in `docs/decisions/` (copy `0000-template.md`) |
 | a renderer added/changed | `docs/renderers/<name>.md` (copy `_template.md`) |
+| a renderer added | sample file(s) in `demo/` + a row in `demo/README.md` |
 | roadmap item done or reshaped | `docs/roadmap.md` |
 
 Do not create new top-level docs or directories without a reason stated in `docs/README.md`.

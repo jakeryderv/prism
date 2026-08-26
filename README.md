@@ -23,6 +23,14 @@ Coding agents produce artifacts faster than humans can `open` them. Prism sits b
 
 TypeScript · Bun · SolidJS · Tauri (Rust) — Linux first, then macOS/Windows.
 
+## Try it on this repo
+
+```sh
+bun run dev:desktop -- -- .
+```
+
+then open `demo/` in the file tree — one sample per supported format.
+
 ## Docs
 
 - [Vision](docs/vision.md) — what this is and why

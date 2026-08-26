@@ -3,6 +3,7 @@
 - **Package:** `@prism/renderer-image`
 - **Matches:** `image/png`, `image/jpeg`, `image/gif`, `image/webp`, `image/bmp`, `image/x-icon`, `image/avif`, `image/svg+xml` — score 10 (exact MIME match; the list is `IMAGE_MIMES` in `src/mime.ts`). Anything else scores 0, including image types the webview cannot decode (TIFF, HEIC).
 - **Max size:** 50 MiB. Same as the registry default, set explicitly so the limit is visible in the package. Decoding is done by the webview, so the real ceiling is memory for the decoded bitmap, not file size.
+- **Demo files:** `demo/images/`
 
 ## What it shows
 

@@ -3,6 +3,7 @@
 - **Package:** `@prism/renderer-code`
 - **Matches:** every MIME where core's `isTextMime` is true. Score **1** when no grammar is known (universal text fallback: `.txt`, `.log`, `.csv`, sniffed `text/plain`, …) and **5** when the extension or MIME maps to a Monaco language (`src/language.ts`: ts/tsx/js/jsx, json/jsonl/ipynb, yaml, toml (as INI), md, py, rs, go, css/scss/less, html, xml/svg, sh, sql, java, c/cpp, cs, rb, php, Dockerfile, …). Dedicated renderers (Markdown, JSON tree, CSV) are expected to score higher; this one stays in the "view as" list as the raw view.
 - **Max size:** 20 MiB. Monaco gets sluggish beyond that; the registry reports too-large above it.
+- **Demo files:** `demo/code/`
 
 ## What it shows
 
