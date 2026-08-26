@@ -71,30 +71,34 @@ Implementations:
 
 The provider is supplied once via Solid context at the app root. Nothing below it knows which implementation it is talking to.
 
-## Renderer contract *(planned)*
+## Renderer contract
+
+Defined in `packages/core/src/renderer.ts`; summary below, source is authoritative.
 
 ```ts
-interface Renderer {
-  id: string                                   // 'markdown', 'image', ...
+interface Renderer<TView> {
+  id: string
   displayName: string
-  match(artifact: Pick<Artifact, 'path' | 'mime' | 'size'>): number   // 0 = no, higher = better match
-  maxSize?: number                             // bytes; registry enforces, renderer never sees larger
-  component: Component<{ artifact: Artifact }>
+  match(head: Pick<Artifact, 'path' | 'mime' | 'size'>): number   // 0 = no, higher = better
+  maxSize?: number                  // bytes; overrides the registry default (50 MiB)
+  load(): Promise<TView>            // async so heavy deps stay out of the initial bundle
 }
 ```
 
-- `match` returns a score so multiple renderers can claim a type (e.g. JSON: tree view vs. code view) and the user can switch.
+- `TView` is the UI framework's component type. Core is framework-agnostic; `@prism/ui` fixes it to Solid's `Component<{ artifact: Artifact }>`. This is also the escape hatch for non-Solid third-party renderers later.
+- `match` returns a score so several renderers can claim a type (JSON: tree vs. code) and the user can switch; ties keep registration order.
 - Renderers re-run when `artifact.revision` changes. They do not subscribe to the watcher themselves.
-- Renderers are lazy-loaded; heavy deps (Monaco, PDF.js) must not be in the initial bundle.
+- `matchMime([...])` and `matchMimePrefix('text/')` cover the common cases.
 
 ### Registry
 
-Owns the fallback policy so renderers do not:
+`RendererRegistry.resolve(head, { exclude?, prefer? })` owns the fallback policy so renderers do not:
 
-1. Collect renderers with `match > 0`, sorted by score.
-2. Drop any whose `maxSize` is exceeded.
-3. If none remain: show the "unsupported / too large" view with **Open externally**.
-4. If the chosen renderer throws: show the error view with the next candidate offered.
+1. Collect renderers with `match > 0`, best score first, minus any `exclude`d ids.
+2. Nothing left → `{ kind: 'unsupported' }` → UI shows **Open externally**.
+3. Drop candidates whose limit (`maxSize ?? defaultMaxSize`) is below the artifact size. None left → `{ kind: 'too-large', renderer, maxSize }` reporting the *most permissive* limit → UI shows the size message + **Open externally**.
+4. Otherwise `{ kind: 'render', renderer, alternatives }` — `prefer` wins if it is among the fitting candidates; `alternatives` feeds a "view as" switcher.
+5. If the chosen renderer throws, the UI calls `resolve` again with that id in `exclude`, which walks to the next candidate and eventually to `unsupported`.
 
 ## File watching *(planned)*
 
@@ -108,7 +112,7 @@ Rust side, `notify` + debouncer + `ignore` crate.
 
 ## Large files
 
-Policy lives in the registry (`maxSize`) and the provider (`open()` may refuse or truncate). Renderers assume what they receive is within budget.
+Policy lives in the registry (`maxSize` / `defaultMaxSize`) and the provider (`open()` may refuse or truncate). Renderers assume what they receive is within budget.
 
 ## HTML preview
 
