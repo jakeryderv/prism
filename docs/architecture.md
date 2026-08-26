@@ -4,7 +4,7 @@
 
 ## Packages
 
-Bun workspace monorepo. `core`, `ui`, and `renderers/code` exist; the rest are planned.
+Bun workspace monorepo. `core`, `ui`, `renderers/code`, and `renderers/image` exist; the rest are planned.
 
 ```text
 packages/

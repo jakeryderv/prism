@@ -27,6 +27,14 @@
         "vite-plugin-solid": "^2.11.0",
       },
     },
+    "packages/renderers/image": {
+      "name": "@prism/renderer-image",
+      "version": "0.0.0",
+      "dependencies": {
+        "@prism/core": "workspace:*",
+        "solid-js": "^1.9.0",
+      },
+    },
     "packages/ui": {
       "name": "@prism/ui",
       "version": "0.0.0",
@@ -162,6 +170,8 @@
     "@prism/core": ["@prism/core@workspace:packages/core"],
 
     "@prism/renderer-code": ["@prism/renderer-code@workspace:packages/renderers/code"],
+
+    "@prism/renderer-image": ["@prism/renderer-image@workspace:packages/renderers/image"],
 
     "@prism/ui": ["@prism/ui@workspace:packages/ui"],
 
