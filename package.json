@@ -13,7 +13,7 @@
     "boundaries": "bun scripts/check-boundaries.ts",
     "test": "bun test --pass-with-no-tests",
     "dev:ui": "bun run --cwd packages/ui dev",
-    "dev:desktop": "bun run --cwd packages/desktop tauri dev"
+    "dev:desktop": "bun scripts/dev-desktop.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.0.0",

@@ -154,7 +154,7 @@ In desktop mode that URL is a custom `prism://localhost/<absolute path>` scheme 
 
 ## Desktop shell
 
-Tauri 2, `packages/desktop`. `src-tauri` (crate `prism`) owns workspace state, fs reads, the `prism://` scheme, the file watcher, and native "open". `src/` is the Solid entry: `App.tsx` opens the workspace given on the command line (`prism <dir>`, or `PRISM_WORKSPACE=<dir>`; the argument wins) or shows an **Open folder…** button (`@tauri-apps/plugin-dialog`), then mounts `<PrismProvider provider registry><Workspace/></PrismProvider>` from `@prism/ui` with the code and image renderers. `bun run dev:desktop -- -- <dir>` starts it in dev.
+Tauri 2, `packages/desktop`. `src-tauri` (crate `prism`) owns workspace state, fs reads, the `prism://` scheme, the file watcher, and native "open". `src/` is the Solid entry: `App.tsx` opens the workspace given on the command line (`prism <dir>`, or `PRISM_WORKSPACE=<dir>`; the argument wins) or shows an **Open folder…** button (`@tauri-apps/plugin-dialog`), then mounts `<PrismProvider provider registry><Workspace/></PrismProvider>` from `@prism/ui` with the code and image renderers. `bun run dev:desktop <dir>` starts it in dev.
 
 ### Commands
 

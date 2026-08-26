@@ -12,7 +12,7 @@ Requires Bun, Rust stable, and the [Tauri Linux prerequisites](https://tauri.app
 
 ```sh
 bun install && bun run dev:desktop            # opens a folder picker
-bun run dev:desktop -- -- /path/to/project    # or open a folder directly
+bun run dev:desktop /path/to/project    # or open a folder directly
 ```
 
 ## Why
@@ -26,7 +26,7 @@ TypeScript · Bun · SolidJS · Tauri (Rust) — Linux first, then macOS/Windows
 ## Try it on this repo
 
 ```sh
-bun run dev:desktop -- -- .
+bun run dev:desktop .
 ```
 
 then open `demo/` in the file tree — one sample per supported format.

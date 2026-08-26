@@ -12,7 +12,7 @@ How documentation is organized and when to touch what.
 
 ## Top-level `demo/`
 
-`demo/` (repo root, not under `docs/`) holds one sample file per supported renderer so the app can be run against this repository itself (`bun run dev:desktop -- -- .`). It exists so renderer work is testable without hunting for fixtures; see `demo/README.md` for the convention.
+`demo/` (repo root, not under `docs/`) holds one sample file per supported renderer so the app can be run against this repository itself (`bun run dev:desktop .`). It exists so renderer work is testable without hunting for fixtures; see `demo/README.md` for the convention.
 
 ## Principles
 
