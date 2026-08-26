@@ -20,7 +20,7 @@ Renderers in the order that best stresses the skeleton:
 
 | Renderer | Proves | Status |
 |---|---|---|
-| code/text (Monaco) | lazy-loaded heavy dep, large-file policy | todo |
+| code/text (Monaco) | lazy-loaded heavy dep, large-file policy | done — `@prism/renderer-code` (#9) |
 | Markdown | text → DOM, relative images via `url()` | todo |
 | images / SVG | `url()` path, binary, no parsing | todo |
 | HTML | sandboxed iframe, asset resolution | todo |
