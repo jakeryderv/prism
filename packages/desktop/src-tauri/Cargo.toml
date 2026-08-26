@@ -25,7 +25,7 @@ serde_json = "1"
 percent-encoding = "2"
 mime_guess = "2"
 notify = "8"
-notify-debouncer-full = "0.6"
+notify-debouncer-full = "0.7"
 ignore = "0.4"
 
 [dev-dependencies]
