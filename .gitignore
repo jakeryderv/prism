@@ -1,0 +1,28 @@
+# deps / build
+node_modules/
+dist/
+build/
+target/
+.turbo/
+*.tsbuildinfo
+
+# tauri
+packages/desktop/src-tauri/gen/schemas/
+packages/desktop/src-tauri/target/
+
+# env / local
+.env
+.env.*
+!.env.example
+.claude/settings.local.json
+
+# os / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# logs
+*.log

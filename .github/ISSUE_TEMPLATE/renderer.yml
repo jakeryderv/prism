@@ -1,0 +1,19 @@
+name: New renderer
+description: Request or plan support for a file type
+labels: [renderer, feature]
+body:
+  - type: input
+    id: types
+    attributes:
+      label: File types
+      placeholder: ".xlsx, .xls (application/vnd.ms-excel)"
+    validations: { required: true }
+  - type: textarea
+    id: approach
+    attributes:
+      label: Proposed library / approach
+  - type: textarea
+    id: limits
+    attributes:
+      label: Expected limits
+      description: Max size, unsupported variants, licensing concerns.

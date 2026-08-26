@@ -1,0 +1,13 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+jobs:
+  placeholder:
+    name: Placeholder
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Release pipeline not implemented yet — see docs/roadmap.md Phase 1 (Linux packaging)."
