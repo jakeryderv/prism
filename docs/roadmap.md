@@ -22,7 +22,7 @@ Renderers in the order that best stresses the skeleton:
 |---|---|---|
 | code/text (Monaco) | lazy-loaded heavy dep, large-file policy | todo |
 | Markdown | text → DOM, relative images via `url()` | todo |
-| images / SVG | `url()` path, binary, no parsing | todo |
+| images / SVG | `url()` path, binary, no parsing | done (#10) |
 | HTML | sandboxed iframe, asset resolution | todo |
 | CSV | tabular data, virtualization | todo |
 | JSON / YAML | two views of one artifact (tree + code) | todo |
