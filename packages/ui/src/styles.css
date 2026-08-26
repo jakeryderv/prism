@@ -1,0 +1,252 @@
+:root {
+  --prism-bg: #1e1f24;
+  --prism-bg-panel: #24262c;
+  --prism-bg-hover: #2e3138;
+  --prism-bg-active: #353945;
+  --prism-fg: #d7dae0;
+  --prism-fg-muted: #8b919c;
+  --prism-border: #33363e;
+  --prism-accent: #7aa2f7;
+  --prism-danger: #f7768e;
+  --prism-created: #9ece6a;
+  --prism-modified: #e0af68;
+  --prism-deleted: #f7768e;
+  --prism-font: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --prism-mono: ui-monospace, "JetBrains Mono", Menlo, Consolas, monospace;
+}
+
+.prism-workspace {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr) 280px;
+  grid-template-rows: minmax(0, 1fr);
+  height: 100%;
+  min-height: 0;
+  background: var(--prism-bg);
+  color: var(--prism-fg);
+  font: 13px / 1.4 var(--prism-font);
+}
+
+.prism-workspace button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.prism-panel-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--prism-fg-muted);
+  border-bottom: 1px solid var(--prism-border);
+}
+
+/* tree */
+.prism-tree {
+  overflow: auto;
+  background: var(--prism-bg-panel);
+  border-right: 1px solid var(--prism-border);
+}
+.prism-tree-row {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+  padding: 3px 8px;
+  text-align: left;
+  white-space: nowrap;
+}
+.prism-tree-row:hover {
+  background: var(--prism-bg-hover);
+}
+.prism-tree-row.is-active {
+  background: var(--prism-bg-active);
+  color: var(--prism-accent);
+}
+.prism-tree-row.is-deleted {
+  text-decoration: line-through;
+  color: var(--prism-fg-muted);
+}
+.prism-tree-icon {
+  width: 1em;
+  color: var(--prism-fg-muted);
+}
+
+/* main */
+.prism-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+.prism-tabs {
+  display: flex;
+  overflow-x: auto;
+  background: var(--prism-bg-panel);
+  border-bottom: 1px solid var(--prism-border);
+}
+.prism-tab {
+  display: flex;
+  align-items: center;
+  border-right: 1px solid var(--prism-border);
+  color: var(--prism-fg-muted);
+}
+.prism-tab.is-active {
+  color: var(--prism-fg);
+  background: var(--prism-bg);
+  box-shadow: inset 0 -2px 0 var(--prism-accent);
+}
+.prism-tab.is-deleted .prism-tab-label {
+  text-decoration: line-through;
+}
+.prism-tab-label {
+  padding: 6px 4px 6px 10px;
+  white-space: nowrap;
+}
+.prism-tab-close {
+  padding: 4px 8px;
+  color: var(--prism-fg-muted);
+}
+.prism-tab-close:hover {
+  color: var(--prism-danger);
+}
+
+.prism-viewer {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+.prism-artifact {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+.prism-renderer {
+  flex: 1;
+  min-height: 0;
+}
+.prism-renderer pre {
+  margin: 0;
+  padding: 12px;
+  font: 12px / 1.5 var(--prism-mono);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.prism-message,
+.prism-loading {
+  padding: 24px;
+  color: var(--prism-fg-muted);
+}
+.prism-message code {
+  font-family: var(--prism-mono);
+  color: var(--prism-fg);
+}
+.prism-notice {
+  padding: 6px 12px;
+  font-size: 12px;
+  color: var(--prism-modified);
+  background: color-mix(in srgb, var(--prism-modified) 12%, transparent);
+  border-bottom: 1px solid var(--prism-border);
+}
+.prism-error {
+  color: var(--prism-danger);
+}
+.prism-open-external {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 8px;
+}
+.prism-open-external button,
+.prism-view-as select {
+  padding: 4px 10px;
+  color: var(--prism-fg);
+  background: var(--prism-bg-active);
+  border: 1px solid var(--prism-border);
+  border-radius: 4px;
+}
+.prism-view-as {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding: 4px 12px;
+  font-size: 12px;
+  color: var(--prism-fg-muted);
+  border-bottom: 1px solid var(--prism-border);
+}
+
+/* activity */
+.prism-activity {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--prism-bg-panel);
+  border-left: 1px solid var(--prism-border);
+}
+.prism-follow {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  font-weight: normal;
+  text-transform: none;
+  letter-spacing: normal;
+}
+.prism-activity-list {
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  list-style: none;
+}
+.prism-activity-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  padding: 5px 10px;
+  text-align: left;
+}
+.prism-activity-row:hover:not(:disabled) {
+  background: var(--prism-bg-hover);
+}
+.prism-activity-row:disabled {
+  cursor: default;
+  color: var(--prism-fg-muted);
+}
+.prism-activity-path {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--prism-mono);
+  font-size: 12px;
+}
+.prism-activity-time {
+  font-size: 11px;
+  color: var(--prism-fg-muted);
+}
+.prism-badge {
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 3px;
+  color: var(--prism-bg);
+}
+.prism-badge-created {
+  background: var(--prism-created);
+}
+.prism-badge-modified {
+  background: var(--prism-modified);
+}
+.prism-badge-deleted {
+  background: var(--prism-deleted);
+}
+.prism-empty {
+  padding: 10px;
+  color: var(--prism-fg-muted);
+}

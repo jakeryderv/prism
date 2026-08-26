@@ -11,7 +11,8 @@
     "fix": "biome check --write .",
     "typecheck": "tsc --noEmit",
     "boundaries": "bun scripts/check-boundaries.ts",
-    "test": "bun test --pass-with-no-tests"
+    "test": "bun test --pass-with-no-tests",
+    "dev:ui": "bun run --cwd packages/ui dev"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.0.0",

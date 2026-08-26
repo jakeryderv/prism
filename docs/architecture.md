@@ -4,7 +4,7 @@
 
 ## Packages
 
-Bun workspace monorepo. Only `core` exists so far; the rest are planned.
+Bun workspace monorepo. `core`, `ui`, `renderers/code`, and `renderers/image` exist; the rest are planned.
 
 ```text
 packages/
@@ -99,6 +99,36 @@ interface Renderer<TView> {
 3. Drop candidates whose limit (`maxSize ?? defaultMaxSize`) is below the artifact size. None left → `{ kind: 'too-large', renderer, maxSize }` reporting the *most permissive* limit → UI shows the size message + **Open externally**.
 4. Otherwise `{ kind: 'render', renderer, alternatives }` — `prefer` wins if it is among the fitting candidates; `alternatives` feeds a "view as" switcher.
 5. If the chosen renderer throws, the UI calls `resolve` again with that id in `exclude`, which walks to the next candidate and eventually to `unsupported`.
+
+## UI package
+
+`@prism/ui` fixes the renderer view type to Solid: `RendererView = Component<{ artifact: Artifact }>` and `SolidRenderer = Renderer<RendererView>`. A renderer package may declare the same two aliases locally rather than depend on `@prism/ui`.
+
+### Store
+
+`src/store/` is plain TypeScript with no Solid dependency, unit-tested with `bun test` (see ADR-0003):
+
+- `tabs.ts` — pure reducers over `{ tabs, active }` keyed by path. Reopening an open path activates it; closing the active tab activates the right neighbour, then the left. A `deleted` event flags the tab (struck-through) rather than closing it, so the user sees the file vanish; `created` clears the flag; closing removes it.
+- `activity.ts` — newest-first ring buffer (cap 500) of `FileEvent`s plus the `follow` flag. `shouldAutoOpen(event, follow)` is true for `created`/`modified` while following.
+- `tree.ts` — lazy directory model. `TreeModel.expand(dir)` lists once via the provider and caches; events patch loaded directories incrementally (`created` inserts sorted, surfacing a new subdirectory in a loaded grandparent; `modified` updates size/mtime; `deleted` removes, or flags when an open tab keeps it visible). Unloaded directories ignore events and list fresh when expanded. Ordering matches `MemoryProvider.list`: dirs first, then by name.
+
+### Workspace
+
+`createWorkspace(provider)` owns the Solid signals, subscribes to `provider.watch` exactly once, and routes each event to tree, activity, and tabs. `artifactFor(path)` is a per-path signal of `ArtifactSlot` (`loading` | `ready` | `error`); a `modified` event re-runs `provider.open` so consumers observe a new `Artifact` with a new `revision`. `<PrismProvider provider registry>` supplies provider, registry, and workspace via context (`useProvider`, `useRegistry`, `useWorkspace`).
+
+### Viewer host
+
+`Viewer` shows the active tab's artifact and is the only place fallback policy is executed (the policy itself lives in the registry):
+
+1. `registry.resolve({ path, mime, size }, { exclude, prefer })`.
+2. `render` → `load()` the renderer lazily (loading state), mount it keyed on `revision + renderer.id` so a new revision remounts, inside an `ErrorBoundary`. On error the renderer id is added to `exclude` for that revision (reset when the revision changes), a one-line notice names what failed, and resolution re-runs — walking to the next candidate and eventually `unsupported`. Alternatives populate a "view as" select that sets `prefer`.
+3. `too-large` → size and limit message + **Open externally**. `unsupported` → message + **Open externally**. The button calls `provider.openExternal` and shows a thrown `ProviderError` inline (`MemoryProvider` always throws `unsupported`).
+
+Renderer errors are never swallowed below this level.
+
+### Dev harness
+
+`packages/ui/dev` (`bun run dev:ui`) mounts `Workspace` on a seeded `MemoryProvider` with a trivial text renderer and a deliberately throwing `text/markdown` renderer, plus a "simulate agent" button that writes, edits, and deletes files on an interval to exercise live update, activity, and follow.
 
 ## File watching *(planned)*
 

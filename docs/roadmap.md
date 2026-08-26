@@ -9,7 +9,7 @@ Status is tracked in GitHub Issues (milestone **MVP**); this page is the readabl
 - [x] `@prism/core`: provider interface, `MemoryProvider`, file-type detection (#4)
 - [x] `@prism/core`: renderer registry with fallback policy (#5)
 - [ ] `@prism/desktop`: Tauri 2 shell, `TauriProvider`, Rust watcher with debounce + ignore
-- [ ] `@prism/ui`: file tree, tabs, viewer host, activity panel
+- [x] `@prism/ui`: file tree, tabs, viewer host, activity panel (#8)
 - [x] Spike: Tauri on Linux (WebKitGTK) with Monaco, sandboxed iframe, PDF.js — passed; asset protocol caveat recorded in ADR-0001 (#3)
 
 ## Phase 1 — MVP: working desktop viewer
@@ -20,9 +20,9 @@ Renderers in the order that best stresses the skeleton:
 
 | Renderer | Proves | Status |
 |---|---|---|
-| code/text (Monaco) | lazy-loaded heavy dep, large-file policy | todo |
+| code/text (Monaco) | lazy-loaded heavy dep, large-file policy | done — `@prism/renderer-code` (#9) |
 | Markdown | text → DOM, relative images via `url()` | todo |
-| images / SVG | `url()` path, binary, no parsing | todo |
+| images / SVG | `url()` path, binary, no parsing | done (#10) |
 | HTML | sandboxed iframe, asset resolution | todo |
 | CSV | tabular data, virtualization | todo |
 | JSON / YAML | two views of one artifact (tree + code) | todo |

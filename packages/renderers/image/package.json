@@ -1,0 +1,13 @@
+{
+  "name": "@prism/renderer-image",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@prism/core": "workspace:*",
+    "solid-js": "^1.9.0"
+  }
+}
