@@ -106,7 +106,9 @@ Policy lives in the registry (`maxSize`) and the provider (`open()` may refuse o
 
 ## HTML preview
 
-Sandboxed `<iframe>` with `srcdoc`. Relative assets (CSS, images written alongside) resolve through `Artifact.url()` of a directory base — via Tauri's asset protocol in desktop, via HTTP in server mode.
+Sandboxed `<iframe>` with `srcdoc` plus a `<base href>` pointing at the artifact's directory via `Artifact.url()`, so relative assets (CSS, JS, images written alongside) resolve.
+
+In desktop mode that URL is a custom `prism://localhost/<absolute path>` scheme registered in Rust, **not** Tauri's `asset://` protocol — the built-in protocol encodes the whole path as one segment, which breaks relative resolution (details in ADR-0001, spike results). The scheme handler enforces scope: paths must be inside the open workspace and contain no `..`. In server mode the same role is played by an HTTP route.
 
 ## Desktop shell *(planned)*
 
