@@ -2,9 +2,9 @@
 
 > Describes the intended structure. Sections marked *(planned)* do not exist in code yet; they will be un-marked as implemented.
 
-## Packages *(planned)*
+## Packages
 
-Bun workspace monorepo.
+Bun workspace monorepo. Only `core` exists so far; the rest are planned.
 
 ```text
 packages/
@@ -26,15 +26,15 @@ server       ───▶ core
 
 `@tauri-apps/*` is imported **only** in `packages/desktop`. This is what makes renderers testable without a Tauri runtime and makes a future web/remote mode a new provider rather than a rewrite. See ADR-0004.
 
-## Provider interface *(planned)*
+## Provider interface
 
-The abstraction between "things that render files" and "wherever files actually live".
+The abstraction between "things that render files" and "wherever files actually live". Defined in `packages/core/src/provider.ts`; the snippet below is a summary — the source is authoritative.
 
 ```ts
-interface Entry { path: string; kind: 'file' | 'dir'; size: number; mtime: number }
+interface Entry { path: string; name: string; kind: 'file' | 'dir'; size: number; mtime: number }
 
 interface Artifact {
-  path: string            // workspace-relative
+  path: string            // workspace-relative, POSIX, no leading slash
   mime: string
   size: number
   revision: string        // content hash; renderers key reloads on this, not on path
@@ -46,22 +46,28 @@ interface Artifact {
 type FileEvent = { kind: 'created' | 'modified' | 'deleted'; path: string; timestamp: number; size?: number; hash?: string }
 
 interface WorkspaceProvider {
-  root: string
-  list(dir: string): Promise<Entry[]>
+  readonly root: string
+  list(dir: string): Promise<Entry[]>      // '' is the workspace root
   stat(path: string): Promise<Entry>
   open(path: string): Promise<Artifact>
-  watch(cb: (ev: FileEvent) => void): () => void
+  watch(cb: (ev: FileEvent) => void): Unsubscribe
   openExternal(path: string): Promise<void>
 }
 ```
 
+Failures are `ProviderError` with a `code` (`not-found`, `is-directory`, `not-directory`, `unsupported`) so UI can branch without string-matching. `normalizePath` in core is the one canonical path form; providers normalize on entry.
+
 Implementations:
 
-| Provider | Package | Backing |
-|---|---|---|
-| `TauriProvider` | desktop | IPC to Rust; `url()` via Tauri asset protocol |
-| `MemoryProvider` | core | in-memory map; tests and component stories |
-| `RemoteProvider` *(later)* | server | WebSocket events, HTTP for bytes |
+| Provider | Package | Backing | Status |
+|---|---|---|---|
+| `MemoryProvider` | core | in-memory map; `write`/`remove` emit watch events for tests | done |
+| `TauriProvider` | desktop | IPC to Rust; `url()` via custom `prism://` scheme | planned (#6) |
+| `RemoteProvider` | server | WebSocket events, HTTP for bytes | later |
+
+### File-type detection
+
+`detectMime(path, bytes?)` in core: extension table first, magic bytes for well-known binaries (PNG, JPEG, GIF, WebP, PDF, zip, gzip, SQLite, wasm), then a text/binary heuristic on the first 8 KiB. Magic bytes override a misleading extension, except zip — which is the container for `.xlsx`/`.docx`/`.pptx` and must not override them. Revision identity is FNV-1a 64 (`fnv1a64`); a stronger hash can replace it in any provider as long as it is stable for identical bytes.
 
 The provider is supplied once via Solid context at the app root. Nothing below it knows which implementation it is talking to.
 

@@ -6,7 +6,8 @@ Status is tracked in GitHub Issues (milestone **MVP**); this page is the readabl
 
 - [x] Repo, CI, docs structure, conventions
 - [x] Bun workspace + Biome + TypeScript config (root only; packages come with their first code)
-- [ ] `@prism/core`: provider interface, `MemoryProvider`, renderer registry, file-type detection
+- [x] `@prism/core`: provider interface, `MemoryProvider`, file-type detection (#4)
+- [ ] `@prism/core`: renderer registry (#5)
 - [ ] `@prism/desktop`: Tauri 2 shell, `TauriProvider`, Rust watcher with debounce + ignore
 - [ ] `@prism/ui`: file tree, tabs, viewer host, activity panel
 - [x] Spike: Tauri on Linux (WebKitGTK) with Monaco, sandboxed iframe, PDF.js — passed; asset protocol caveat recorded in ADR-0001 (#3)
