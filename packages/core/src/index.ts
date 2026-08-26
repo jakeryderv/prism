@@ -17,3 +17,11 @@ export type {
   WorkspaceProvider,
 } from './provider'
 export { basename, dirname, extname, normalizePath, ProviderError } from './provider'
+export type {
+  ArtifactHead,
+  RegistryOptions,
+  Renderer,
+  Resolution,
+  ResolveOptions,
+} from './renderer'
+export { DEFAULT_MAX_SIZE, matchMime, matchMimePrefix, RendererRegistry } from './renderer'
