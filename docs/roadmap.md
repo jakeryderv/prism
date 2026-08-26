@@ -1,18 +1,21 @@
 # Roadmap
 
+**Status (2026-08-25):** Phase 0 complete. The desktop app opens a folder, watches it, and live-previews code and images; Phase 1 renderers are next.
+
 Status is tracked in GitHub Issues (milestone **MVP**); this page is the readable summary. Keep it in sync when scope changes.
 
-## Phase 0 — Foundation ← current
+## Phase 0 — Foundation — done
 
 - [x] Repo, CI, docs structure, conventions
 - [x] Bun workspace + Biome + TypeScript config (root only; packages come with their first code)
 - [x] `@prism/core`: provider interface, `MemoryProvider`, file-type detection (#4)
 - [x] `@prism/core`: renderer registry with fallback policy (#5)
-- [ ] `@prism/desktop`: Tauri 2 shell, `TauriProvider`, Rust watcher with debounce + ignore
+- [x] `@prism/desktop`: Tauri 2 shell, fs commands, `prism://` scheme, `TauriProvider` (#6)
+- [x] `@prism/desktop`: Rust watcher with debounce + ignore, emitting `fs:event` (#7)
 - [x] `@prism/ui`: file tree, tabs, viewer host, activity panel (#8)
 - [x] Spike: Tauri on Linux (WebKitGTK) with Monaco, sandboxed iframe, PDF.js — passed; asset protocol caveat recorded in ADR-0001 (#3)
 
-## Phase 1 — MVP: working desktop viewer
+## Phase 1 — MVP: working desktop viewer ← current
 
 Goal: open a directory, watch it, and preview every file type below live, with a native-app fallback for everything else.
 

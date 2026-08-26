@@ -4,14 +4,14 @@
 
 ## Packages
 
-Bun workspace monorepo. `core`, `ui`, `renderers/code`, and `renderers/image` exist; the rest are planned.
+Bun workspace monorepo. `core`, `ui`, `renderers/code`, `renderers/image`, and `desktop` exist; `server` is planned.
 
 ```text
 packages/
   core/        @prism/core      file-type detection, provider interface, renderer registry, workspace state, events
   ui/          @prism/ui        Solid components: file tree, tabs, viewer, activity panel
   renderers/   @prism/renderer-<name>   one package per renderer
-  desktop/     @prism/desktop   Tauri app: Rust backend (fs, watcher, native integration) + Solid entry
+  desktop/     @prism/desktop   Tauri app: Rust backend (fs, scheme, watcher, native integration) + Solid entry
   server/      @prism/server    (later) remote provider over WebSocket/HTTP
 ```
 
@@ -55,14 +55,14 @@ interface WorkspaceProvider {
 }
 ```
 
-Failures are `ProviderError` with a `code` (`not-found`, `is-directory`, `not-directory`, `unsupported`) so UI can branch without string-matching. `normalizePath` in core is the one canonical path form; providers normalize on entry.
+Failures are `ProviderError` with a `code` (`not-found`, `is-directory`, `not-directory`, `unsupported`, `forbidden`, `io`) so UI can branch without string-matching. `forbidden` is a path that resolves outside the workspace (or no workspace open); `io` is any other backend failure, with detail in `message`. Both were added for `TauriProvider`; `MemoryProvider` never raises them. `normalizePath` in core is the one canonical path form; providers normalize on entry.
 
 Implementations:
 
 | Provider | Package | Backing | Status |
 |---|---|---|---|
 | `MemoryProvider` | core | in-memory map; `write`/`remove` emit watch events for tests | done |
-| `TauriProvider` | desktop | IPC to Rust; `url()` via custom `prism://` scheme | planned (#6) |
+| `TauriProvider` | desktop | IPC to Rust; `url()` via custom `prism://` scheme | done (#6) |
 | `RemoteProvider` | server | WebSocket events, HTTP for bytes | later |
 
 ### File-type detection
@@ -130,15 +130,17 @@ Renderer errors are never swallowed below this level.
 
 `packages/ui/dev` (`bun run dev:ui`) mounts `Workspace` on a seeded `MemoryProvider` with a trivial text renderer and a deliberately throwing `text/markdown` renderer, plus a "simulate agent" button that writes, edits, and deletes files on an interval to exercise live update, activity, and follow.
 
-## File watching *(planned)*
+## File watching
 
-Rust side, `notify` + debouncer + `ignore` crate.
+Rust side (`packages/desktop/src-tauri/src/watcher.rs`): `notify` 8 + `notify-debouncer-full` 0.6 for coalescing, the `ignore` crate (ripgrep's) for `.gitignore` semantics, and an existence map for normalization. Decision record: ADR-0005.
 
-- Events are debounced and coalesced per path (agents and editors write in bursts).
-- Atomic saves (`write tmp; rename`) are normalized to `modified`, not `deleted`+`created`.
-- `.gitignore` and a built-in ignore list (`.git`, `node_modules`, `target`, …) are honored.
-- Renders wait for a short settle window so half-written files are not parsed.
-- Each event carries `size` and a content `hash` when cheap to compute. The MVP UI only uses `kind` and `path`; the extra fields are the hook for revision tracking later without changing the event shape.
+- Starts when `workspace_open` succeeds (the previous watcher is stopped first), recursive over the canonical root. A watcher failure fails the command; there is no silent fallback.
+- **Debounce:** 150 ms per path (the debouncer's window). Every debounced batch is normalized by one pure function, `normalize(batch, &mut known, root, rules, settle)`, on a dedicated std thread — nothing runs on the async runtime.
+- **Normalization:** kind is decided by existence on disk versus `known: HashMap<rel_path, bool>` (seeded by a walk at start, honoring the ignore rules). Exists and unknown → `created`; exists and known → `modified`; gone and known → `deleted`; gone and unknown → dropped (a tmp file that came and went). So a create+modify burst is one `created`, an atomic save (`write x.tmp; rename x.tmp x`) is exactly one `modified` on `x`, and `mv a b` is `deleted a` + `created b`. Access events (reads) are dropped — the UI re-reads on `modified`, which would otherwise loop. Directories emit too (the tree needs them) but never carry `size`/`hash`.
+- **Settle:** if a file's mtime is within the last 50 ms it is re-stat'ed once after 50 ms before emitting, a cheap guard against half-written files.
+- **Ignore rules:** built-ins `.git`, `node_modules`, `target`, `dist`, `.cache`, `__pycache__`, `.venv`, `.DS_Store`, `*.swp`, `*~`, `.#*`, `4913`, then the root `.gitignore` (so `!pattern` there can override a built-in). Nested `.gitignore` files are not read yet. Paths under an ignored directory never emit. `IgnoreRules::is_ignored(rel, is_dir)` is pure and unit-tested.
+- **Payload** is core's `FileEvent` exactly: `{ kind, path, timestamp, size?, hash? }` with `path` workspace-relative POSIX and `timestamp` ms since epoch. `size` for every file; `hash` (FNV-1a 64, 16 lowercase hex, identical to core's `fnv1a64` — vector-tested) only for files ≤ 1 MiB. Emitted as the Tauri event `fs:event`; `TauriProvider.watch` listens for it.
+- `PRISM_DEBUG=1` logs each emitted event to stderr (`[watcher] kind path size hash`), and `App.tsx` mirrors what the UI receives through `log_line`, so the two streams can be compared in one terminal.
 
 ## Large files
 
@@ -150,6 +152,36 @@ Sandboxed `<iframe>` with `srcdoc` plus a `<base href>` pointing at the artifact
 
 In desktop mode that URL is a custom `prism://localhost/<absolute path>` scheme registered in Rust, **not** Tauri's `asset://` protocol — the built-in protocol encodes the whole path as one segment, which breaks relative resolution (details in ADR-0001, spike results). The scheme handler enforces scope: paths must be inside the open workspace and contain no `..`. In server mode the same role is played by an HTTP route.
 
-## Desktop shell *(planned)*
+## Desktop shell
 
-Tauri 2. Rust handles: workspace open, fs reads, watcher, asset protocol, `open` for native apps. The Solid front end is the same code that will later run in the browser against `RemoteProvider`.
+Tauri 2, `packages/desktop`. `src-tauri` (crate `prism`) owns workspace state, fs reads, the `prism://` scheme, the file watcher, and native "open". `src/` is the Solid entry: `App.tsx` opens the workspace given on the command line (`prism <dir>`, or `PRISM_WORKSPACE=<dir>`; the argument wins) or shows an **Open folder…** button (`@tauri-apps/plugin-dialog`), then mounts `<PrismProvider provider registry><Workspace/></PrismProvider>` from `@prism/ui` with the code and image renderers. `bun run dev:desktop -- -- <dir>` starts it in dev.
+
+### Commands
+
+All paths crossing IPC are workspace-relative POSIX (`''` = root), the same form as `normalizePath`. Rust joins them onto the canonical root, rejects `..` and absolute paths, canonicalizes, and requires the result to start with the root — so symlinks cannot escape either.
+
+| Command | Purpose |
+|---|---|
+| `workspace_initial` | the CLI / env path, if any (`Option<String>`) |
+| `workspace_open(path)` | canonicalize, require a directory, store as root; returns `{ root }` |
+| `workspace_current` | `{ root }` or `null` |
+| `fs_list(dir)` | `Entry[]`, dirs first then files, name-sorted; entries whose metadata fails are skipped; no ignore rules (the watcher's concern) |
+| `fs_stat(path)` | `Entry` |
+| `fs_read(path)` | raw bytes as `tauri::ipc::Response` (ArrayBuffer on the JS side, no base64); directories → `is-directory` |
+| `open_external(path)` | `tauri-plugin-opener` `open_path` on the absolute path |
+| `log_line(line)` | `eprintln!` from the UI — dev aid, kept because screenshots are unavailable under Wayland |
+| `debug_enabled` | whether `PRISM_DEBUG=1` is set; the UI mirrors received `fs:event`s via `log_line` when it is |
+
+The window CSP is `null` for now (TODO in `lib.rs`); it will be tightened once the renderer set is settled. Command permissions are generated by `build.rs` (`AppManifest::commands`) and granted in `capabilities/default.json` alongside `core:default`, `dialog:allow-open`, and `opener:default`.
+
+### Errors
+
+Rust's `AppError` serializes as `{ code, message }` with `code` ∈ core's `ProviderErrorCode`; `io::Error` kinds map to `not-found`, `forbidden` (permission denied), `is-directory`, `not-directory`, else `io`. `TauriProvider` rethrows every command failure as `ProviderError(code, path, message)`; anything not in that shape propagates untouched.
+
+### `prism://` scheme
+
+Registered with `register_uri_scheme_protocol("prism", …)`. `prism://localhost/<absolute path>` — the front end percent-encodes each segment and keeps `/`, so relative resolution sees real segments and names containing `%` round-trip. The handler percent-decodes, rejects `..` before touching disk, canonicalizes, and requires the file to be under the current workspace root: 403 outside/no workspace, 404 missing, 400 for a directory. Content-Type comes from `mime_guess`; `Access-Control-Allow-Origin: *` is set so `fetch()` from the webview origin (`tauri://localhost`, or `http://localhost:1420` in dev) succeeds. Bodies are whole-file `std::fs::read`; streaming is out of scope.
+
+### Revision strategy
+
+`TauriProvider.open` stats first and uses `${size}-${mtime}` as `Artifact.revision` rather than a content hash: `revision` is a plain field, so hashing would force a full read before anything renders. It changes on every write, which is what re-render keys need; `read()` runs `fs_read` once and caches, and a `modified` event makes the UI re-open, yielding a fresh artifact. `mime` is `detectMime(path)` (extension only; no bytes at open time).

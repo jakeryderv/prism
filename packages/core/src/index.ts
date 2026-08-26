@@ -13,6 +13,7 @@ export type {
   Entry,
   FileEvent,
   FileEventKind,
+  ProviderErrorCode,
   Unsubscribe,
   WorkspaceProvider,
 } from './provider'
