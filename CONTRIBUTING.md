@@ -2,13 +2,24 @@
 
 ## Dev setup
 
-Requirements: [Bun](https://bun.sh) ≥ 1.4, Rust stable + [Tauri prerequisites](https://tauri.app/start/prerequisites/) (needed once the desktop shell exists).
+Requirements: [Bun](https://bun.sh) ≥ 1.4, Rust stable (with `clippy` and `rustfmt`) + [Tauri prerequisites](https://tauri.app/start/prerequisites/).
+
+On Debian/Ubuntu the Tauri 2 deps are:
+`libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev`.
 
 ```sh
 bun install
-bun run check      # typecheck + lint + format check
+bun run check      # Biome + typecheck + package boundaries
 bun run test
+bun run dev:desktop -- -- /path/to/dir   # run the desktop app against a folder
+
+cd packages/desktop/src-tauri            # Rust side; CI runs exactly these
+cargo fmt --check
+cargo clippy --all-targets -- -D warnings
+cargo test
 ```
+
+`PRISM_DEBUG=1` makes the watcher and the UI log every file event to stderr, which is the way to verify behaviour without screenshots.
 
 ## Workflow
 

@@ -22,5 +22,32 @@ jobs:
       - run: bun run check
       - run: bun run test
 
-  # Tauri build is slow and needs system deps; runs only on manual dispatch or tags
-  # until there is a desktop package. See docs/roadmap.md Phase 0.
+  desktop:
+    name: Desktop
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/desktop/src-tauri
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy,rustfmt
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: packages/desktop/src-tauri
+      - name: Install Tauri 2 Linux deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
+      - run: bun install --frozen-lockfile
+        working-directory: .
+      - run: cargo fmt --check
+      - run: cargo clippy --all-targets -- -D warnings
+      - run: cargo test
+      # Frontend bundle only. `tauri build` (AppImage/.deb) is a Phase 1 packaging item.
+      - run: bun run --cwd packages/desktop build
+        working-directory: .

@@ -4,7 +4,16 @@
 
 Prism watches a project directory and live-previews whatever files a coding agent creates or edits — code, Markdown, JSON/YAML, images, HTML, CSV, PDF, spreadsheets, notebooks, and more — through a pluggable renderer system.
 
-> Status: **pre-alpha / scaffolding**. Nothing runnable yet. See [docs/roadmap.md](docs/roadmap.md).
+> Status: **pre-alpha**. The desktop app opens a folder and live-previews code and images as files change; other renderers are in progress. See [docs/roadmap.md](docs/roadmap.md).
+
+## Run it
+
+Requires Bun, Rust stable, and the [Tauri Linux prerequisites](https://tauri.app/start/prerequisites/).
+
+```sh
+bun install && bun run dev:desktop            # opens a folder picker
+bun run dev:desktop -- -- /path/to/project    # or open a folder directly
+```
 
 ## Why
 

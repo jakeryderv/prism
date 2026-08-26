@@ -11,7 +11,7 @@ packages/
   core/        @prism/core      file-type detection, provider interface, renderer registry, workspace state, events
   ui/          @prism/ui        Solid components: file tree, tabs, viewer, activity panel
   renderers/   @prism/renderer-<name>   one package per renderer
-  desktop/     @prism/desktop   Tauri app: Rust backend (fs, scheme, native integration; watcher planned) + Solid entry
+  desktop/     @prism/desktop   Tauri app: Rust backend (fs, scheme, watcher, native integration) + Solid entry
   server/      @prism/server    (later) remote provider over WebSocket/HTTP
 ```
 
